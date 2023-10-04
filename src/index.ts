@@ -47,7 +47,8 @@ const DEFAULT_DRAFT_OBJ : draftObjType = {
 ////////////////////////////////////////////////////////////////////
 program
   .description("Drafting utilities to pull multiple Bible translations")
-  .option("-b, --book <book name>", "name of book to retrieve")
+  .option("-b, --book <book name>", "name of book to retrieve. " +
+          "Could be 3-character alias: https://github.com/Glowstudent777/YouVersion-API-NPM#books-and-aliases")
   .option("-c, --chapter <chapter number>", "Chapter number as a string")
   .option("-v, --verses <verse>", "Verse numbers as a string (split by hyphen)")
   .parse(process.argv);
@@ -107,35 +108,43 @@ const ID = {
 }
 
 
-async function getVerses(book: string, chapter: string, verses: string) {
+async function getVerses(book: string, chapter: string, currentVerse: number) {
   let obj : draftObjType = DEFAULT_DRAFT_OBJ;
+  let verses = currentVerse.toString();
 
   let ref : any = {};
   ref = await yv.getVerse(book, chapter, verses, "THSV11");
+  checkError(ref, book, chapter, verses,  'THSV11');
   //console.log(ref.passage);
   obj.THSV11 = ref.passage;
 
   ref = await yv.getVerse(book, chapter, verses, "TNCV");
+  checkError(ref, book, chapter, verses,  'TNCV');
   //console.log(ref.passage);
   obj.TNCV = ref.passage;
 
   ref = await yv.getVerse(book, chapter, verses, "THAERV");
+  checkError(ref, book, chapter, verses,  'THAERV');
   //console.log(ref.passage);
   obj.THAERV = ref.passage;
 
   ref = await yv.getVerse(book, chapter, verses, "NODTHNT");
+  checkError(ref, book, chapter, verses,  'NODTHNT');
   //console.log(ref.passage);
   obj.NODTHNT = ref.passage;
 
   ref = await yv.getVerse(book, chapter, verses, "NTV");
+  checkError(ref, book, chapter, verses,  'NTV');
   //console.log(ref.passage);
   obj.NTV = ref.passage;
 
   ref = await yv.getVerse(book, chapter, verses, "ESV");
+  checkError(ref, book, chapter, verses,  'ESV');
   //console.log(ref.passage);
   obj.ESV = ref.passage;
 
   ref = await yv.getVerse(book, chapter, verses, "SBLG");
+  checkError(ref, book, chapter, verses,  'SBLG');
   //console.log(ref.passage);
   obj.SBLG = ref.passage;
 
@@ -152,16 +161,35 @@ if (options.verses) {
 } else {
   // Do all the verses in a chapter
   verseRange[0] = 1;
-  verseRange[1] = books.getBookByName(options.book).versesInChapter[options.chapter];
+
+  let bookInfo = books.getBookByName(options.book);
+  if (bookInfo.code == "000") {
+    bookInfo = books.getBookByCode(options.book.toUpperCase());
+  }
+  verseRange[1] = bookInfo.versesInChapter[options.chapter];
 }
+
+const title = (verseRange[0] == verseRange[1]) ?
+  options.book + " " + options.chapter + ":" + verseRange[0] :
+  options.book + " " + options.chapter + ":" + verseRange[0] + '-' + verseRange[1];
+
+let str = "<html><head><title>" + title + "</title></head>";
+
+str += "<h1>" + title + "</h1>";
 
 for (let currentVerse=verseRange[0]; currentVerse<=verseRange[1]; currentVerse++) {
   // Get verses
-  let obj = await getVerses(options.book, options.chapter, currentVerse.toString());
+  let obj = await getVerses(options.book, options.chapter, currentVerse);
   console.log(obj);
 
-  writeHTML(options.book, options.chapter, currentVerse.toString(), obj);
+  //writeHTML(options.book, options.chapter, currentVerse.toString(), obj);
+  str += writeTable(options.book, options.chapter, currentVerse, obj);
 }
+
+
+str += "</html>";
+
+fs.writeFileSync('./' + options.book + 'Ch' + options.chapter + '-' + verseRange[0] + '-' + verseRange[1] + '.html', str);
 
 if (verseRange[0] == verseRange[1]) {
   console.log('Done processing ' + options.book + ' ' + options.chapter + ':' + verseRange[0]);
@@ -173,6 +201,12 @@ if (verseRange[0] == verseRange[1]) {
 // End of processor functions
 //////////(//////////////////////////////////////////////////////////
 
+function checkError(ref, book: string, chapter: string, currentVerse: string, version: string) {
+  if (ref.code == 400) {
+    console.error(ref.message + ' for ' + book + ' Ch ' + chapter + ':' + currentVerse + ' (' + version + ')');
+    process.exit(1);
+  }
+}
 
 function writeHTML(book, chapter, verses, obj) {
   const title = book + " " + chapter + ":" + verses;
@@ -181,7 +215,7 @@ function writeHTML(book, chapter, verses, obj) {
 
   str += "<h1>" + title + "</h1>";
 
-  str += writeTable(obj);
+  str += writeTable(book, chapter, verses[0], obj);
 
   str += "</p>";
   str += "</html>";
@@ -194,8 +228,9 @@ function writeHTML(book, chapter, verses, obj) {
  * @param obj = Drafting object
  * @returns {string}
  */
-function writeTable(obj) : string {
-  let str = "";
+function writeTable(book: string, chapter: string, currentVerse: number, obj: draftObjType) : string {
+  let str = "<hr>";
+  str += "<h2>" + book + ' ' + chapter + ':' + currentVerse + "</h2>";
 
   str += "<table>"
 
