@@ -49,7 +49,7 @@ program
   .description("Drafting utilities to pull multiple Bible translations")
   .option("-b, --book <book name>", "name of book to retrieve")
   .option("-c, --chapter <chapter number>", "Chapter number as a string")
-  .option("-v, --verses <verse>", "Verse number as a string")
+  .option("-v, --verses <verse>", "Verse numbers as a string (split by hyphen)")
   .parse(process.argv);
 
 // Debugging parameters
@@ -142,27 +142,37 @@ async function getVerses(book: string, chapter: string, verses: string) {
   return obj
 }
 
-// If verses specified, process them
+// Determine the verse ranges
+let verseRange : number[] = [];
 if (options.verses) {
-  let obj = await getVerses(options.book, options.chapter, options.verses);
-  console.log(obj);
-  writeHTML(options.book, options.chapter, options.verses, obj);
-} else {
-  // Otherwise, iterate for all verses in the chapter
-  for(let i=1; i<= books.getBookByName(options.book).versesInChapter[options.chapter]; i++) {
-    let obj = await getVerses(options.book, options.chapter, i.toString());
-    console.log(obj);
-
-    writeHTML(options.book, options.chapter, i.toString(), obj);
+  verseRange = options.verses.split('-');
+  if (verseRange.length == 1) {
+    verseRange[1] = verseRange[0];
   }
+} else {
+  // Do all the verses in a chapter
+  verseRange[0] = 1;
+  verseRange[1] = books.getBookByName(options.book).versesInChapter[options.chapter];
 }
 
+for (let currentVerse=verseRange[0]; currentVerse<=verseRange[1]; currentVerse++) {
+  // Get verses
+  let obj = await getVerses(options.book, options.chapter, currentVerse.toString());
+  console.log(obj);
+
+  writeHTML(options.book, options.chapter, currentVerse.toString(), obj);
+}
+
+if (verseRange[0] == verseRange[1]) {
+  console.log('Done processing ' + options.book + ' ' + options.chapter + ':' + verseRange[0]);
+} else {
+  console.log('Done processing ' + options.book + ' ' + options.chapter + ':' + verseRange[0] + '-' + verseRange[1]);
+}
 
 ////////////////////////////////////////////////////////////////////
 // End of processor functions
 //////////(//////////////////////////////////////////////////////////
 
-// Get verses
 
 function writeHTML(book, chapter, verses, obj) {
   const title = book + " " + chapter + ":" + verses;
