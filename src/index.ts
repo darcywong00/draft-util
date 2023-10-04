@@ -2,7 +2,7 @@
 // Copyright 2023 SIL International
 import { program } from 'commander';
 import * as fs from 'fs';
-import * as books from './books';
+import * as books from './books.js';
 import * as yv from '@glowstudent/youversion';
 //const { fetchReferenceContent } = require('youversion-suggest');
 //import { fetchReferenceContent, getLanguages, getBibleData } from 'youversion-suggest';
@@ -47,7 +47,9 @@ const DEFAULT_DRAFT_OBJ : draftObjType = {
 ////////////////////////////////////////////////////////////////////
 program
   .description("Drafting utilities to pull multiple Bible translations")
-  .option("-p, --projectName <name>", "name of the project")
+  .option("-b, --book <book name>", "name of book to retrieve")
+  .option("-c, --chapter <chapter number>", "Chapter number as a string")
+  .option("-v, --verses <verse>", "Verse number as a string")
   .parse(process.argv);
 
 // Debugging parameters
@@ -55,45 +57,54 @@ const options = program.opts();
 const debugMode = true;
 if (debugMode) {
   console.log('Parameters:');
-  if (options.back) {
-    console.log(`Back Translation text file path: "${options.back}"`);
+  if (options.book) {
+    console.log(`Book name: "${options.book}"`);
   }
-  if (options.text) {
-    console.log(`Toolbox text file path: "${options.text}"`);
+  if (options.chapter) {
+    console.log(`Chapter: "${options.chapter}"`);
   }
-  if (options.backDirectory) {
-    console.log(`RTF files path: "${options.backDirectory}"`);
-  }
-  if (options.directory) {
-    console.log(`Toolbox files path: "${options.directory}"`);
-  }
-  if (options.json) {
-    console.log(`JSON file: "${options.json}"`);
-  }
-  if (options.projectName) {
-    console.log(`Project Name: "${options.projectName}`);
-  }
-  if (options.backSuperDirectory){
-    console.log(`Back Translation super directory: "${options.backSuperDirectory}`);
-  }
-  if (options.superDirectory){
-    console.log(`Project Directory: "${options.superDirectory}`);
+  if (options.verses) {
+    console.log(`Verses: "${options.verses}"`);
   }
   console.log('\n');
 }
 
-// Map of translation IDs
+// Book and chapter required
+if (!options.book) {
+  console.error("Book name required");
+  process.exit(1);
+}
+if (!options.chapter) {
+  console.error("Chapter required");
+  process.exit(1);
+}
+
+
+// Map of translation IDs. Replaces node_modules/@glowstudent/youversion/dist/package.json
 const ID = {
-  THSV11 : 174,
-  TNCV : 179,
-  THAERV : 203,
-  NTV : 2744,
-  ESV : 59,
+  "AMP": 1588,
+  "ICL00D": 1196,
+  "KJV": 1,
+  "NIV": 111,
+  "NLT": 116,
+  "NR06": 122,
+  "SCH2000": 157,
+  "VULG": 823,
 
-  SBLG : 156,
+  "THSV11" : 174,
+  "TNCV" : 179,
+  "THAERV" : 203,
 
-  CCB : 36
-};
+  "NODTHNT": 1907,
+
+  "NTV" : 2744,
+
+  "ESV" : 59,
+
+  "SBLG" : 156,
+
+  "CCB" : 36
+}
 
 
 async function getVerses(book: string, chapter: string, verses: string) {
@@ -131,10 +142,21 @@ async function getVerses(book: string, chapter: string, verses: string) {
   return obj
 }
 
-let obj = await getVerses("James", "1", "1");
-console.log(obj);
-//getVerses();
-writeHTML("James", "1", "1", obj);
+// If verses specified, process them
+if (options.verses) {
+  let obj = await getVerses(options.book, options.chapter, options.verses);
+  console.log(obj);
+  writeHTML(options.book, options.chapter, options.verses, obj);
+} else {
+  // Otherwise, iterate for all verses in the chapter
+  for(let i=1; i<= books.getBookByName(options.book).versesInChapter[options.chapter]; i++) {
+    let obj = await getVerses(options.book, options.chapter, i.toString());
+    console.log(obj);
+
+    writeHTML(options.book, options.chapter, i.toString(), obj);
+  }
+}
+
 
 ////////////////////////////////////////////////////////////////////
 // End of processor functions
@@ -157,6 +179,11 @@ function writeHTML(book, chapter, verses, obj) {
   fs.writeFileSync('./' + book + chapter + '-' + verses + '.html', str);
 }
 
+/**
+ * Return HTML text for table
+ * @param obj = Drafting object
+ * @returns {string}
+ */
 function writeTable(obj) : string {
   let str = "";
 
@@ -180,22 +207,4 @@ function writeTable(obj) : string {
   str += "</table>";
 
   return str;
-}
-/**
- * Write JSON file (for testing purposes).
- * Filename will be [##][XYZ][Project name].json
- * ## - 2-digit book number
- * XYZ - 3 character book code
- * Project name - Paratext project name
- * @param {books.bookType} bookObj - the book object to write to file
- */
-function writeJSON(bookObj: books.objType) {
-  if (debugMode) {
-    // Add leading 0 if book number < 10
-    const padZero = bookObj.header.bookInfo.num < 10 ? '0' : '';
-    const filename = padZero + bookObj.header.bookInfo.num +
-      bookObj.header.bookInfo.code + bookObj.header.projectName + '.json';
-    fs.writeFileSync('./' + filename, JSON.stringify(bookObj, null, 2));
-    console.info(`Writing out "${filename}"`);
-  }
 }

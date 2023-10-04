@@ -862,7 +862,7 @@ export function getBookByName(name: string): bookType {
     case 'I Corinthians':
     case '1Corinthians':
     case 'x1Corinthians':
-    case '1 Cor':  
+    case '1 Cor':
       bookName = "1 Corinthians";
       break;
     case '2Corinthians':
@@ -880,9 +880,9 @@ export function getBookByName(name: string): bookType {
       break;
     case 'Phil':
       bookName = 'Philippians';
-      break;  
+      break;
     case '1Thessalonians':
-    case '1 Thess':       
+    case '1 Thess':
       bookName = '1 Thessalonians';
       break;
     case '2Thessalonians':
@@ -890,7 +890,7 @@ export function getBookByName(name: string): bookType {
       bookName = '2 Thessalonians';
       break;
     case '1Timothy':
-    case '1 Tim':  
+    case '1 Tim':
       bookName = '1 Timothy';
       break;
     case '2Timothy':
@@ -898,7 +898,7 @@ export function getBookByName(name: string): bookType {
       bookName = '2 Timothy';
       break;
     case '1Peter':
-    case '1 Pet':  
+    case '1 Pet':
       bookName = '1 Peter';
       break;
     case '2Peter':
