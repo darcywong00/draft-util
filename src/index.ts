@@ -198,8 +198,15 @@ function writeTable(obj) : string {
   let str = "";
 
   str += "<table>"
+
+  str += "<colgroup>";
+  str += "<col span='1' style='width: 10%;'>";
+  str += "<col span='1' style='width: 90%;'>";
+  str += "</colgroup>";
+
   str += "<tbody style='font-size: 28px'>";
-  str += "<tr><th>Version</th><th>Verse</th></tr>";
+  str += "<tr><th>Version</th>";
+  str += "<th>Verse</th></tr>";
 
   str += "<tr><td>THSV11</td><td>" + obj.THSV11 + "</td></tr>";
   str += "<tr><td>TNCV</td><td>" + obj.TNCV + "</td></tr>";
@@ -209,10 +216,10 @@ function writeTable(obj) : string {
   str += "<tr><td>ESV</td><td>" + obj.ESV + "</td></tr>";
   str += "<tr><td>Greek</td><td>" + obj.SBLG + "</td></tr>";
 
-  str += "<tr><td>Tawan</td></tr>";
-  str += "<tr><td>Jum</td></tr>";
-  str += "<tr><td>La</td></tr>";
-  str += "<tr><td>Taam</td></tr>";
+  str += "<tr><td>Tawan</td><td></td></tr>";
+  str += "<tr><td>Jum</td><td></td></tr>";
+  str += "<tr><td>La</td><td></td></tr>";
+  str += "<tr><td>Taam</td><td></td></tr>";
 
   str += "</table>";
 
