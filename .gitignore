@@ -7,11 +7,8 @@ samples/
 # Compiled Output files
 dist/
 
-# Generated project status files with the name [project]-[quarter]-[year].json
-*-*-*.json
-
 # Published artifacts
 deploy/
 
 # Output
-*.SFM
+*.html

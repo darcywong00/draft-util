@@ -7,6 +7,41 @@ import * as yv from '@glowstudent/youversion';
 //const { fetchReferenceContent } = require('youversion-suggest');
 //import { fetchReferenceContent, getLanguages, getBibleData } from 'youversion-suggest';
 
+type draftObjType = {
+  // Thai versions
+  THSV11 : string,
+  TNCV : string,
+  THAERV : string,
+
+  // Lanna
+  NODTHNT: string,
+
+  // Thai
+  NTV : string,
+
+  // English
+  ESV : string,
+
+  // Greek
+  SBLG : string,
+
+  CCB? : string
+
+};
+
+const DEFAULT_DRAFT_OBJ : draftObjType = {
+  THSV11 : "",
+  TNCV : "",
+  THAERV : "",
+  NTV : "",
+  ESV : "",
+  NODTHNT: "",
+
+  SBLG : "",
+
+  CCB : ""
+}
+
 ////////////////////////////////////////////////////////////////////
 // Get parameters
 ////////////////////////////////////////////////////////////////////
@@ -55,14 +90,17 @@ const ID = {
   NTV : 2744,
   ESV : 59,
 
+  SBLG : 156,
+
   CCB : 36
 };
 
 
 async function getVerses(book: string, chapter: string, verses: string) {
-  let obj = {};
+  let obj : draftObjType = DEFAULT_DRAFT_OBJ;
 
-  let ref = await yv.getVerse(book, chapter, verses, "THSV11");
+  let ref : any = {};
+  ref = await yv.getVerse(book, chapter, verses, "THSV11");
   //console.log(ref.passage);
   obj.THSV11 = ref.passage;
 
@@ -86,6 +124,10 @@ async function getVerses(book: string, chapter: string, verses: string) {
   //console.log(ref.passage);
   obj.ESV = ref.passage;
 
+  ref = await yv.getVerse(book, chapter, verses, "SBLG");
+  //console.log(ref.passage);
+  obj.SBLG = ref.passage;
+
   return obj
 }
 
@@ -107,18 +149,7 @@ function writeHTML(book, chapter, verses, obj) {
 
   str += "<h1>" + title + "</h1>";
 
-  str += "<table>"
-  str += "<tbody style='font-size: 28px'>";
-  str += "<tr><th>Version</th><th>Verse</th></tr>";
-
-  str += "<tr><td>THSV11</td><td>" + obj.THSV11 + "</td></tr>";
-  str += "<tr><td>TNCV</td><td>" + obj.TNCV + "</td></tr>";
-  str += "<tr><td>THAERV</td><td>" + obj.THAERV + "</td></tr>";
-  str += "<tr><td>NODTHNT</td><td>" + obj.NODTHNT + "</td></tr>";
-  str += "<tr><td>NTV</td><td>" + obj.NTV + "</td></tr>";
-  str += "<tr><td>ESV</td><td>" + obj.ESV + "</td></tr>";
-
-  str += "</table>";
+  str += writeTable(obj);
 
   str += "</p>";
   str += "</html>";
@@ -126,6 +157,30 @@ function writeHTML(book, chapter, verses, obj) {
   fs.writeFileSync('./' + book + chapter + '-' + verses + '.html', str);
 }
 
+function writeTable(obj) : string {
+  let str = "";
+
+  str += "<table>"
+  str += "<tbody style='font-size: 28px'>";
+  str += "<tr><th>Version</th><th>Verse</th></tr>";
+
+  str += "<tr><td>THSV11</td><td>" + obj.THSV11 + "</td></tr>";
+  str += "<tr><td>TNCV</td><td>" + obj.TNCV + "</td></tr>";
+  str += "<tr><td>THA-ERV</td><td>" + obj.THAERV + "</td></tr>";
+  str += "<tr><td>NODTHNT</td><td>" + obj.NODTHNT + "</td></tr>";
+  str += "<tr><td>NTV</td><td>" + obj.NTV + "</td></tr>";
+  str += "<tr><td>ESV</td><td>" + obj.ESV + "</td></tr>";
+  str += "<tr><td>Greek</td><td>" + obj.SBLG + "</td></tr>";
+
+  str += "<tr><td>Tawan</td></tr>";
+  str += "<tr><td>Jum</td></tr>";
+  str += "<tr><td>La</td></tr>";
+  str += "<tr><td>Taam</td></tr>";
+
+  str += "</table>";
+
+  return str;
+}
 /**
  * Write JSON file (for testing purposes).
  * Filename will be [##][XYZ][Project name].json
