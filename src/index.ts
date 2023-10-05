@@ -182,7 +182,6 @@ for (let currentVerse=verseRange[0]; currentVerse<=verseRange[1]; currentVerse++
   let obj = await getVerses(options.book, options.chapter, currentVerse);
   console.log(obj);
 
-  //writeHTML(options.book, options.chapter, currentVerse.toString(), obj);
   str += writeTable(options.book, options.chapter, currentVerse, obj);
 }
 
@@ -229,8 +228,7 @@ function writeHTML(book, chapter, verses, obj) {
  * @returns {string}
  */
 function writeTable(book: string, chapter: string, currentVerse: number, obj: draftObjType) : string {
-  let str = "<hr>";
-  str += "<h2>" + book + ' ' + chapter + ':' + currentVerse + "</h2>";
+  let str = "<h2>" + book + ' ' + chapter + ':' + currentVerse + "</h2>";
 
   str += "<table>"
 
@@ -239,9 +237,9 @@ function writeTable(book: string, chapter: string, currentVerse: number, obj: dr
   str += "<col span='1' style='width: 90%;'>";
   str += "</colgroup>";
 
-  str += "<tbody style='font-size: 28px'>";
-  str += "<tr><th>Version</th>";
-  str += "<th>Verse</th></tr>";
+  str += "<tbody style='font-size: 14pt; font-family:Sarabun;'>";
+  //str += "<tr><th>Version</th>";
+  //str += "<th>Verse</th></tr>";
 
   str += "<tr><td>THSV11</td><td>" + obj.THSV11 + "</td></tr>";
   str += "<tr><td>TNCV</td><td>" + obj.TNCV + "</td></tr>";
@@ -257,6 +255,7 @@ function writeTable(book: string, chapter: string, currentVerse: number, obj: dr
   str += "<tr><td>Taam</td><td></td></tr>";
 
   str += "</table>";
+  str += "<hr class='pb'>";
 
   return str;
 }
