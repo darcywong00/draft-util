@@ -35,6 +35,7 @@ export interface bookType {
   code: CodeType;   // 3-character book indentifier as defined by
                     // https://ubsicap.github.io/usfm/identification/books.html
   name: string;     // Book name
+  thName?: string;  // Thai name
   num: number;      // Book number as defined by
                     // https://ubsicap.github.io/usfm/identification/books.html
   chapters: number; // Total number of chapters in the book
@@ -492,6 +493,7 @@ export const bookInfo: bookType[] = [
   {
     code: "ACT",
     name: "Acts",
+    thName: "กิจการ",
     num: 45,
     chapters: 28,
     versesInChapter: [0, 26, 47, 26, 37, 42, 15, 60, 40, 43, 48,
@@ -626,6 +628,7 @@ export const bookInfo: bookType[] = [
   {
     code: "1PE",
     name: "1 Peter",
+    thName: "1 เปโตร",
     num: 61,
     chapters: 5,
     versesInChapter: [0, 25, 25, 22, 19, 14],
@@ -634,6 +637,7 @@ export const bookInfo: bookType[] = [
   {
     code: "2PE",
     name: "2 Peter",
+    thName: "2 เปโตร",
     num: 62,
     chapters: 3,
     versesInChapter: [0, 21, 22, 18],
@@ -642,6 +646,7 @@ export const bookInfo: bookType[] = [
   {
     code: "1JN",
     name: "1 John",
+    thName: "1 ยอห์น",
     num: 63,
     chapters: 5,
     versesInChapter: [0, 10, 29, 24, 21, 21],
@@ -650,6 +655,7 @@ export const bookInfo: bookType[] = [
   {
     code: "2JN",
     name: "2 John",
+    thName: "2 ยอห์น",
     num: 64,
     chapters: 1,
     versesInChapter: [0, 13],
@@ -658,6 +664,7 @@ export const bookInfo: bookType[] = [
   {
     code: "3JN",
     name: "3 John",
+    thName: "3 ยอห์น",
     num: 65,
     chapters: 1,
     versesInChapter: [0, 15],
