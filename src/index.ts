@@ -13,23 +13,23 @@ const versionType = {
   // Thai versions
   THSV11: {
     id: 174,
-    name: "มาตรฐาน\nTHSV 2011"},
+    name: "มาตรฐาน<br>THSV 2011"},
   TNCV: {
     id: 179,
-    name: "อมตธรรมร่วมสมัย\nTNCV"},
+    name: "อมตธรรมร่วมสมัย<br>TNCV"},
   THAERV: {
     id: 203,
-    name: "อ่านเข้าใจง่าย\nEasy to read"},
+    name: "อ่านเข้าใจง่าย<br>Easy to read"},
 
   // Lanna
   NODTHNT: {
     id: 1907,
-    name: "คำเมือง\n(Lanna)"},
+    name: "คำเมือง<br>(Lanna)"},
 
   // Thai
   NTV: {
     id: 2744,
-    name: "แปลใหม่\n(NTV)"},
+    name: "แปลใหม่<br>(NTV)"},
 
   // English
   ESV: {
@@ -114,36 +114,42 @@ if (options.chapters) {
   }
 }
 
-// Determine the verse ranges
-let verseRange : number[] = [];
-if (options.verses) {
-  verseRange = options.verses.split('-');
-  if (verseRange.length == 1) {
-    verseRange[1] = verseRange[0];
-  }
-} else {
-  // Do all the verses in a chapter
-  verseRange[0] = 1;
-  verseRange[1] = bookInfo.versesInChapter[options.chapters];
-}
-
 // Document title
-const title = getDocumentTitle(bookInfo, chapterRange, verseRange);
+const title = getDocumentTitle(bookInfo, chapterRange, options.verses);
 let str = "<html><head><title>" + title + "</title></head>";
 str += "<h1>" + title + "</h1>";
 
-for (let currentVerse=verseRange[0]; currentVerse<=verseRange[1]; currentVerse++) {
-  // Get verses
-  const obj = await getVerses(options.book, options.chapters, currentVerse);
-  console.log(obj);
+for (let currentChapter=chapterRange[0]; currentChapter<=chapterRange[1]; currentChapter++) {
+  // Process entire chapter
 
-  str += writeTable(bookName, options.chapters, currentVerse, obj);
+  // Determine the verse ranges
+  let verseRange : number[] = [];
+  if (options.verses) {
+    verseRange = options.verses.split('-');
+    if (verseRange.length == 1) {
+      verseRange[1] = verseRange[0];
+    }
+  } else {
+    // Do all the verses in a chapter
+    verseRange[0] = 1;
+    verseRange[1] = bookInfo.versesInChapter[currentChapter];
+  }
+
+  for (let currentVerse=verseRange[0]; currentVerse<=verseRange[1]; currentVerse++) {
+    // Get verses
+    const obj = await getVerses(bookInfo, currentChapter, currentVerse);
+    console.log(obj);
+
+    str += writeTable(bookInfo, currentChapter, currentVerse, obj);
+  }
 }
-
 
 str += "</html>";
 
-fs.writeFileSync('./' + bookName + 'Ch' + options.chapters + '-' + verseRange[0] + '-' + verseRange[1] + '.html', str);
+const fileName = options.verses ?
+  `${bookName}Ch${options.chapters}-${options.verses}.html` :
+  `${bookName}Ch${options.chapters}.html`
+fs.writeFileSync('./' + fileName, str);
 
 console.log('Done processing ' + title);
 
@@ -185,43 +191,45 @@ function validateParameters(options) {
   }
 }
 
-async function getVerses(book: string, chapter: string, currentVerse: number) {
+async function getVerses(bookInfo: books.bookType, currentChapter: number, currentVerse: number) :
+    Promise<draftObjType> {
   const obj : draftObjType = DEFAULT_DRAFT_OBJ;
+  const chapter = currentChapter.toString();
   const verses = currentVerse.toString();
 
   let ref : any = {};
-  ref = await yv.getVerse(book, chapter, verses, "THSV11");
-  checkError(ref, book, chapter, verses,  'THSV11');
+  ref = await yv.getVerse(bookInfo.code, chapter, verses, "THSV11");
+  checkError(ref, bookInfo.name, chapter, verses,  'THSV11');
   //console.log(ref.passage);
   obj.THSV11 = ref.passage;
 
-  ref = await yv.getVerse(book, chapter, verses, "TNCV");
-  checkError(ref, book, chapter, verses,  'TNCV');
+  ref = await yv.getVerse(bookInfo.code, chapter, verses, "TNCV");
+  checkError(ref, bookInfo.name, chapter, verses,  'TNCV');
   //console.log(ref.passage);
   obj.TNCV = ref.passage;
 
-  ref = await yv.getVerse(book, chapter, verses, "THAERV");
-  checkError(ref, book, chapter, verses,  'THAERV');
+  ref = await yv.getVerse(bookInfo.code, chapter, verses, "THAERV");
+  checkError(ref, bookInfo.name, chapter, verses,  'THAERV');
   //console.log(ref.passage);
   obj.THAERV = ref.passage;
 
-  ref = await yv.getVerse(book, chapter, verses, "NODTHNT");
-  checkError(ref, book, chapter, verses,  'NODTHNT');
+  ref = await yv.getVerse(bookInfo.code, chapter, verses, "NODTHNT");
+  checkError(ref, bookInfo.name, chapter, verses,  'NODTHNT');
   //console.log(ref.passage);
   obj.NODTHNT = ref.passage;
 
-  ref = await yv.getVerse(book, chapter, verses, "NTV");
-  checkError(ref, book, chapter, verses,  'NTV');
+  ref = await yv.getVerse(bookInfo.code, chapter, verses, "NTV");
+  checkError(ref, bookInfo.name, chapter, verses,  'NTV');
   //console.log(ref.passage);
   obj.NTV = ref.passage;
 
-  ref = await yv.getVerse(book, chapter, verses, "ESV");
-  checkError(ref, book, chapter, verses,  'ESV');
+  ref = await yv.getVerse(bookInfo.code, chapter, verses, "ESV");
+  checkError(ref, bookInfo.name, chapter, verses,  'ESV');
   //console.log(ref.passage);
   obj.ESV = ref.passage;
 
-  ref = await yv.getVerse(book, chapter, verses, "SBLG");
-  checkError(ref, book, chapter, verses,  'SBLG');
+  ref = await yv.getVerse(bookInfo.code, chapter, verses, "SBLG");
+  checkError(ref, bookInfo.name, chapter, verses,  'SBLG');
   //console.log(ref.passage);
   obj.SBLG = ref.passage;
 
@@ -244,17 +252,18 @@ function checkError(ref, book: string, chapter: string, currentVerse: string, ve
   }
 }
 
-function getDocumentTitle(bookInfo: books.bookType, chapterRange: number[], verseRange: number[]) : string {
+function getDocumentTitle(bookInfo: books.bookType, chapterRange: number[], verses: string) : string {
   let title = (bookInfo.thName) ? bookInfo.thName + ' - ' + bookInfo.name :
     bookInfo.name;
 
   title += ' Ch ' + chapterRange[0];
   if (chapterRange[0] == chapterRange[1]) {
     // Single chapter with verse(s)
-    title += ':' + verseRange[0];
-
-    if (verseRange[0] != verseRange[1]) {
-      title += '-' + verseRange[1];
+    if (verses) {
+      title += ':' + verses;
+    } else {
+      // Determine the verse ranges
+      title += ':1-' + bookInfo.versesInChapter[options.chapters];
     }
   } else {
     // Multiple chapters (no verse range)
@@ -264,32 +273,22 @@ function getDocumentTitle(bookInfo: books.bookType, chapterRange: number[], vers
   return title;
 }
 
-function writeHTML(book, chapter, verses, obj) {
-  const title = book + " " + chapter + ":" + verses;
-
-  let str = "<html><head><title>" + title + "</title></head>";
-
-  str += "<h1>" + title + "</h1>";
-
-  str += writeTable(book, chapter, verses[0], obj);
-
-  str += "</p>";
-  str += "</html>";
-
-  fs.writeFileSync('./' + book + chapter + '-' + verses + '.html', str);
-}
-
 /**
- * Return HTML text for table of the versions for a single verse
- * @param book {string} - Book name for title
- * @param chapter {string} - Chapter number
- * @param currentVerse {string} - Current verse number
+ * Return HTML text for caption and table of the versions for a single verse
+ * @param bookInfo {books.bookType} - Info on current book
+ * @param currentChapter {number} - Current chapter number
+ * @param currentVerse {number} - Current verse number
  * @param obj = Drafting object
  * @returns {string} - HTML text for table
  */
-function writeTable(book: string, chapter: string, currentVerse: number, obj: draftObjType) : string {
-  let str = "<h2>" + book + ' ' + chapter + ':' + currentVerse + "</h2>";
+function writeTable(bookInfo: books.bookType, currentChapter: number, currentVerse: number, obj: draftObjType) : string {
+  let title;
+  if (bookInfo.thName) {
+    title = bookInfo.thName + ' - ';
+  }
+  title += bookInfo.name + ' ' + currentChapter + ':' + currentVerse;
 
+  let str = `<h2>${title}</h2>`;
   str += "<table>"
 
   str += "<colgroup>";
@@ -298,16 +297,18 @@ function writeTable(book: string, chapter: string, currentVerse: number, obj: dr
   str += "</colgroup>";
 
   str += "<tbody style='font-size: 14pt; font-family:Sarabun;'>";
+
+  // Optional table headers
   //str += "<tr><th>Version</th>";
   //str += "<th>Verse</th></tr>";
 
-  str += "<tr><td>THSV11</td><td>" + obj.THSV11 + "</td></tr>";
-  str += "<tr><td>TNCV</td><td>" + obj.TNCV + "</td></tr>";
-  str += "<tr><td>THA-ERV</td><td>" + obj.THAERV + "</td></tr>";
-  str += "<tr><td>NODTHNT</td><td>" + obj.NODTHNT + "</td></tr>";
-  str += "<tr><td>NTV</td><td>" + obj.NTV + "</td></tr>";
-  str += "<tr><td>ESV</td><td>" + obj.ESV + "</td></tr>";
-  str += "<tr><td>Greek</td><td>" + obj.SBLG + "</td></tr>";
+  str += "<tr><td>" + versionType.THSV11.name + "</td><td>" + obj.THSV11 + "</td></tr>";
+  str += "<tr><td>" + versionType.TNCV.name + "</td><td>" + obj.TNCV + "</td></tr>";
+  str += "<tr><td>" + versionType.THAERV.name + "</td><td>" + obj.THAERV + "</td></tr>";
+  str += "<tr><td>" + versionType.NODTHNT.name + "</td><td>" + obj.NODTHNT + "</td></tr>";
+  str += "<tr><td>" + versionType.NTV.name + "</td><td>" + obj.NTV + "</td></tr>";
+  str += "<tr><td>" + versionType.ESV.name + "</td><td>" + obj.ESV + "</td></tr>";
+  str += "<tr><td>" + versionType.SBLG.name + "</td><td>" + obj.SBLG + "</td></tr>";
 
   str += "<tr><td>Tawan</td><td></td></tr>";
   str += "<tr><td>Jum</td><td></td></tr>";
@@ -315,6 +316,8 @@ function writeTable(book: string, chapter: string, currentVerse: number, obj: dr
   str += "<tr><td>Taam</td><td></td></tr>";
 
   str += "</table>";
+
+  // Horizontal divider gets imported to Google Docs as page break
   str += "<hr class='pb'>";
 
   return str;
