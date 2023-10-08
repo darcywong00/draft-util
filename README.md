@@ -9,7 +9,7 @@ Parameters
 ```bash
     Required
     -b [book name (can be [3-character alias](https://github.com/Glowstudent777/YouVersion-API-NPM#books-and-aliases))]
-    -c [chapter number as string]
+    -c [chapter number as string. Chapter range with hyphen]
 
     Optional - one of:
     -v [verse(s) as a string. Verse range with hyphen. If not specified, the entire chapter is processed]
