@@ -4,8 +4,6 @@ import { program } from 'commander';
 import * as fs from 'fs';
 import * as books from './books.js';
 import * as yv from '@glowstudent/youversion';
-//const { fetchReferenceContent } = require('youversion-suggest');
-//import { fetchReferenceContent, getLanguages, getBibleData } from 'youversion-suggest';
 
 // Translation IDs and names to use in tables
 // IDs need to match node_models/@glowstudent/youversion/dist/versions.json
@@ -88,11 +86,16 @@ const DEFAULT_DRAFT_OBJ : draftObjType = {
 ////////////////////////////////////////////////////////////////////
 program
   .description("Drafting utilities to pull multiple Bible translations")
-  .option("-b, --book <book name>", "name of book to retrieve. " +
+  .requiredOption("-b, --book <book name>", "name of book to retrieve. " +
           "Could be 3-character alias: https://github.com/Glowstudent777/YouVersion-API-NPM#books-and-aliases")
   .option("-c, --chapters <chapter number>", "Chapter number as a string (chapters split by hyphen")
   .option("-v, --verses <verse>", "Verse number as a string (verses split by hyphen)")
-  .parse(process.argv);
+  .exitOverride();
+try {
+  program.parse();
+} catch(error: any) {
+  console.error(error.message);
+}
 
 // Validate parameters
 const options = program.opts();
@@ -133,6 +136,9 @@ for (let currentChapter=chapterRange[0]; currentChapter<=chapterRange[1]; curren
     // Do all the verses in a chapter
     verseRange[0] = 1;
     verseRange[1] = bookInfo.versesInChapter[currentChapter];
+    if (!verseRange[1]) {
+      console.error(`Unable to determine verses for ${bookInfo.name} chapter ${currentChapter}`);
+    }
   }
 
   for (let currentVerse=verseRange[0]; currentVerse<=verseRange[1]; currentVerse++) {
@@ -163,7 +169,7 @@ function validateParameters(options) {
   if (debugMode) {
     console.log('Parameters:');
     if (options.book) {
-      console.log(`Book name: "${options.book}"`);
+      console.log(`Book parameter: "${options.book}"`);
     }
     if (options.chapters) {
       console.log(`Chapter: "${options.chapters}"`);
