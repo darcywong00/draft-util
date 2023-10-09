@@ -673,6 +673,7 @@ export const bookInfo: bookType[] = [
   {
     code: "JUD",
     name: "Jude",
+    thName: "ยูดา",
     num: 66,
     chapters: 1,
     versesInChapter: [0, 25],

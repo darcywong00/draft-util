@@ -146,7 +146,8 @@ for (let currentChapter=chapterRange[0]; currentChapter<=chapterRange[1]; curren
 
 str += "</html>";
 
-const fileName = options.verses ?
+let fileName = bookInfo.thName ? `${bookInfo.thName} - ` : "";
+fileName += options.verses ?
   `${bookName}Ch${options.chapters}-${options.verses}.html` :
   `${bookName}Ch${options.chapters}.html`
 fs.writeFileSync('./' + fileName, str);
