@@ -4,6 +4,8 @@ import { program } from 'commander';
 import * as fs from 'fs';
 import * as books from './books.js';
 import * as yv from '@glowstudent/youversion';
+import glowBook from "../node_modules/@glowstudent/youversion/dist/books.json" assert {type: "json"};
+
 //const { fetchReferenceContent } = require('youversion-suggest');
 //import { fetchReferenceContent, getLanguages, getBibleData } from 'youversion-suggest';
 
@@ -96,6 +98,7 @@ program
 
 // Validate parameters
 const options = program.opts();
+checkYouversionChapters();
 validateParameters(options);
 
 // Determine book code and book name
@@ -156,6 +159,17 @@ console.log('Done processing ' + title);
 ////////////////////////////////////////////////////////////////////
 // End of processor functions
 ////////////////////////////////////////////////////////////////////
+
+function checkYouversionChapters() {
+  glowBook.books.forEach(b => {
+    const bookCode = b.aliases[0] as books.CodeType;
+    if (b.chapters != books.getBookByCode(bookCode).chapters) {
+      console.error(`${bookCode} has ${b.chapters}, expected ${books.getBookByCode(bookCode).chapters}`);
+    }
+  });
+
+
+}
 
 function validateParameters(options) {
   const debugMode = true;
