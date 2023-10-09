@@ -15,7 +15,7 @@
       ],
       "args": [
         "-b", "Acts",
-        "--chapters", "15-16",
+        "--chapters", "15",
         "--verses", "33-35"
       ]
     },
