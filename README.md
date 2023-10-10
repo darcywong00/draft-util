@@ -3,9 +3,7 @@
 Retrieves verses from several translations to aid in drafting.
 Outputs to HTML tables which can then be imported to Google Docs.
 
-If more versions need to be added, modify versions.json and copy to node_modules/@glowstudent/youversion/dist/
-
-Also check if 1 John accounts for 5 chapters in books.json.
+If more versions need to be added, modify versions.json at https://github.com/glowstudent/youversion/ through a PR.
 
 ## Parameters
 

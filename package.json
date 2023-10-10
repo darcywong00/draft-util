@@ -14,7 +14,7 @@
   "author": "SIL International",
   "license": "MIT",
   "dependencies": {
-    "@glowstudent/youversion": "^1.2.3",
+    "@glowstudent/youversion": "^1.2.6",
     "commander": "^11.0.0",
     "path": "^0.12.7"
   },
