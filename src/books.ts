@@ -454,6 +454,7 @@ export const bookInfo: bookType[] = [
   {
     code: "MAT",
     name: "Matthew",
+    thName: "มัทธิว",
     num: 41,
     chapters: 28,
     versesInChapter: [0, 25, 23, 17, 25, 48, 34, 29, 34, 38, 42,
@@ -464,6 +465,7 @@ export const bookInfo: bookType[] = [
   {
     code: "MRK",
     name: "Mark",
+    thName: "มาระโก",
     num: 42,
     chapters: 16,
     versesInChapter: [0, 45, 28, 35, 41, 43, 56, 37, 38, 50, 52,
@@ -473,6 +475,7 @@ export const bookInfo: bookType[] = [
   {
     code: "LUK",
     name: "Luke",
+    thName: "ลูกา",
     num: 43,
     chapters: 24,
     versesInChapter: [0, 80, 52, 38, 44, 39, 49, 50, 56, 62, 42,
@@ -483,6 +486,7 @@ export const bookInfo: bookType[] = [
   {
     code: "JHN",
     name: "John",
+    thName: "ยอห์น",
     num: 44,
     chapters: 21,
     versesInChapter: [0, 51, 25, 36, 54, 47, 71, 53, 59, 41, 42,
@@ -504,6 +508,7 @@ export const bookInfo: bookType[] = [
   {
     code: "ROM",
     name: "Romans",
+    thName: "โรม",
     num: 46,
     chapters: 16,
     versesInChapter: [0, 32, 29, 31, 25, 21, 23, 25, 39, 33, 21,
@@ -513,6 +518,7 @@ export const bookInfo: bookType[] = [
   {
     code: "1CO",
     name: "1 Corinthians",
+    thName: "1 โครินธ์",
     num: 47,
     chapters: 16,
     versesInChapter: [0, 31, 16, 23, 21, 13, 20, 40, 13, 27, 33,
@@ -522,6 +528,7 @@ export const bookInfo: bookType[] = [
   {
     code: "2CO",
     name: "2 Corinthians",
+    thName: "2 โครินธ์",
     num: 48,
     chapters: 13,
     versesInChapter: [0, 24, 17, 18, 18, 21, 18, 16, 24, 15, 18,
@@ -531,6 +538,7 @@ export const bookInfo: bookType[] = [
   {
     code: "GAL",
     name: "Galatians",
+    thName: "กาลาเทีย",
     num: 49,
     chapters: 6,
     versesInChapter: [0, 24, 21, 29, 31, 26, 18],
@@ -539,6 +547,7 @@ export const bookInfo: bookType[] = [
   {
     code: "EPH",
     name: "Ephesians",
+    thName: "เอเฟซัส",
     num: 50,
     chapters: 6,
     versesInChapter: [0, 23, 22, 21, 32, 33, 24],
@@ -547,6 +556,7 @@ export const bookInfo: bookType[] = [
   {
     code: "PHP",
     name: "Philippians",
+    thName: "ฟีลิปปี",
     num: 51,
     chapters: 4,
     versesInChapter: [0, 30, 30, 21, 23],
@@ -555,6 +565,7 @@ export const bookInfo: bookType[] = [
   {
     code: "COL",
     name: "Colossians",
+    thName: "โคโลสี",
     num: 52,
     chapters: 4,
     versesInChapter: [0, 29, 23, 25, 18],
@@ -563,6 +574,7 @@ export const bookInfo: bookType[] = [
   {
     code: "1TH",
     name: "1 Thessalonians",
+    thName: "1 เธสะโลนิกา",
     num: 53,
     chapters: 5,
     versesInChapter: [0, 10, 20, 13, 18, 28],
@@ -571,6 +583,7 @@ export const bookInfo: bookType[] = [
   {
     code: "2TH",
     name: "2 Thessalonians",
+    thName: "2 เธสะโลนิกา",
     num: 54,
     chapters: 3,
     versesInChapter: [0, 12, 17, 18],
@@ -579,6 +592,7 @@ export const bookInfo: bookType[] = [
   {
     code: "1TI",
     name: "1 Timothy",
+    thName: "1 ทิโมธี",
     num: 55,
     chapters: 6,
     versesInChapter: [0, 20, 15, 16, 16, 25, 21],
@@ -587,6 +601,7 @@ export const bookInfo: bookType[] = [
   {
     code: "2TI",
     name: "2 Timothy",
+    thName: "2 ทิโมธี",
     num: 56,
     chapters: 4,
     versesInChapter: [0, 18, 26, 17, 22],
@@ -595,6 +610,7 @@ export const bookInfo: bookType[] = [
   {
     code: "TIT",
     name: "Titus",
+    thName: "ทิตัส",
     num: 57,
     chapters: 3,
     versesInChapter: [0, 16, 15, 15],
@@ -603,6 +619,7 @@ export const bookInfo: bookType[] = [
   {
     code: "PHM",
     name: "Philemon",
+    thName: "ฟีเลโมน",
     num: 58,
     chapters: 1,
     versesInChapter: [0, 25],
@@ -611,6 +628,7 @@ export const bookInfo: bookType[] = [
   {
     code: "HEB",
     name: "Hebrews",
+    thName: "ฮีบรู",
     num: 59,
     chapters: 13,
     versesInChapter: [0, 14, 18, 19, 16, 14, 20, 28, 13, 28, 39,
@@ -620,6 +638,7 @@ export const bookInfo: bookType[] = [
   {
     code: "JAS",
     name: "James",
+    thName: "ยากอบ",
     num: 60,
     chapters: 5,
     versesInChapter: [0, 27, 26, 18, 17, 20],
@@ -682,6 +701,7 @@ export const bookInfo: bookType[] = [
   {
     code: "REV",
     name: "Revelation",
+    thName: "วิวรณ์",
     num: 67,
     chapters: 22,
     versesInChapter: [0, 20, 29, 22, 11, 14, 17, 17, 13, 21, 11,
