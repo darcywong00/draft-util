@@ -87,7 +87,7 @@ const DEFAULT_DRAFT_OBJ : draftObjType = {
 program
   .description("Drafting utilities to pull multiple Bible translations")
   .requiredOption("-b, --book <book name>", "name of book to retrieve. " +
-          "Could be 3-character alias: https://github.com/Glowstudent777/YouVersion-API-NPM#books-and-aliases")
+      "Could be 3-character alias: https://github.com/Glowstudent777/YouVersion-API-NPM#books-and-aliases")
   .option("-c, --chapters <chapter number>", "Chapter number as a string (chapters split by hyphen")
   .option("-v, --verses <verse>", "Verse number as a string (verses split by hyphen)")
   .exitOverride();
@@ -122,6 +122,7 @@ const title = getDocumentTitle(bookInfo, chapterRange, options.verses);
 let str = "<html><head><title>" + title + "</title></head>";
 str += "<h1>" + title + "</h1>";
 
+const loggingObj: string[] = [];
 for (let currentChapter=chapterRange[0]; currentChapter<=chapterRange[1]; currentChapter++) {
   // Process entire chapter
 
@@ -143,7 +144,7 @@ for (let currentChapter=chapterRange[0]; currentChapter<=chapterRange[1]; curren
 
   for (let currentVerse=verseRange[0]; currentVerse<=verseRange[1]; currentVerse++) {
     // Get verses
-    const obj = await getVerses(bookInfo, currentChapter, currentVerse);
+    const obj = await getVerses(bookInfo, currentChapter, currentVerse, loggingObj);
     console.log(obj);
 
     str += writeTable(bookInfo, currentChapter, currentVerse, obj);
@@ -157,6 +158,8 @@ fileName += options.verses ?
   `${bookName}Ch${options.chapters}-${options.verses}.html` :
   `${bookName}Ch${options.chapters}.html`
 fs.writeFileSync('./' + fileName, str);
+
+fs.writeFileSync('./errors.json', JSON.stringify(loggingObj, null, 2));
 
 console.log('Done processing ' + title);
 
@@ -198,7 +201,7 @@ function validateParameters(options) {
   }
 }
 
-async function getVerses(bookInfo: books.bookType, currentChapter: number, currentVerse: number) :
+async function getVerses(bookInfo: books.bookType, currentChapter: number, currentVerse: number, loggingObj: string[]) :
     Promise<draftObjType> {
   const obj : draftObjType = DEFAULT_DRAFT_OBJ;
   const chapter = currentChapter.toString();
@@ -206,37 +209,37 @@ async function getVerses(bookInfo: books.bookType, currentChapter: number, curre
 
   let ref : any = {};
   ref = await yv.getVerse(bookInfo.code, chapter, verses, "THSV11");
-  checkError(ref, bookInfo.name, chapter, verses,  'THSV11');
+  checkError(loggingObj, ref, bookInfo.name, chapter, verses,  'THSV11');
   //console.log(ref.passage);
   obj.THSV11 = ref.passage;
 
   ref = await yv.getVerse(bookInfo.code, chapter, verses, "TNCV");
-  checkError(ref, bookInfo.name, chapter, verses,  'TNCV');
+  checkError(loggingObj, ref, bookInfo.name, chapter, verses,  'TNCV');
   //console.log(ref.passage);
   obj.TNCV = ref.passage;
 
   ref = await yv.getVerse(bookInfo.code, chapter, verses, "THAERV");
-  checkError(ref, bookInfo.name, chapter, verses,  'THAERV');
+  checkError(loggingObj, ref, bookInfo.name, chapter, verses,  'THAERV');
   //console.log(ref.passage);
   obj.THAERV = ref.passage;
 
   ref = await yv.getVerse(bookInfo.code, chapter, verses, "NODTHNT");
-  checkError(ref, bookInfo.name, chapter, verses,  'NODTHNT');
+  checkError(loggingObj, ref, bookInfo.name, chapter, verses,  'NODTHNT');
   //console.log(ref.passage);
   obj.NODTHNT = ref.passage;
 
   ref = await yv.getVerse(bookInfo.code, chapter, verses, "NTV");
-  checkError(ref, bookInfo.name, chapter, verses,  'NTV');
+  checkError(loggingObj, ref, bookInfo.name, chapter, verses,  'NTV');
   //console.log(ref.passage);
   obj.NTV = ref.passage;
 
   ref = await yv.getVerse(bookInfo.code, chapter, verses, "ESV");
-  checkError(ref, bookInfo.name, chapter, verses,  'ESV');
+  checkError(loggingObj, ref, bookInfo.name, chapter, verses,  'ESV');
   //console.log(ref.passage);
   obj.ESV = ref.passage;
 
   ref = await yv.getVerse(bookInfo.code, chapter, verses, "SBLG");
-  checkError(ref, bookInfo.name, chapter, verses,  'SBLG');
+  checkError(loggingObj, ref, bookInfo.name, chapter, verses,  'SBLG');
   //console.log(ref.passage);
   obj.SBLG = ref.passage;
 
@@ -245,17 +248,26 @@ async function getVerses(bookInfo: books.bookType, currentChapter: number, curre
 
 /**
  * Quick sanity check that query for a verse is valid.
- * TODO: some verses are undefined if it shows in a footnote
+ * TODO: some verses are undefined if it shows in a footnote (issue #3)
+ * @param loggingObj {string[]} - Any errors in getting a verse are added to this log
  * @param ref - verse returned from YouVersion query
  * @param book {string} - book name
  * @param chapter {string} - chapter number as string
  * @param currentVerse  {string} - verse number as string
  * @param version {string} - version of a verse
  */
-function checkError(ref, book: string, chapter: string, currentVerse: string, version: string) {
+function checkError(loggingObj: string[], ref, book: string, chapter: string, currentVerse: string, version: string) {
+  const reference = `${book} Ch ${chapter}:${currentVerse} (${version})`;
   if (ref.code == 400) {
-    console.error(ref.message + ' for ' + book + ' Ch ' + chapter + ':' + currentVerse + ' (' + version + ')');
-    process.exit(1);
+    const msg = `ERROR: ${ref.message} for ${reference}`;
+    console.error(msg);
+    loggingObj.push(msg);
+    // Exit?
+    // process.exit(1);
+  } else if (!ref.passage) {
+    const msg = `WARN: Verse undefined for ${reference}`;
+    //console.warn(msg);
+    loggingObj.push(msg);
   }
 }
 
