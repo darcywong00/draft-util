@@ -12,3 +12,4 @@ deploy/
 
 # Output
 *.html
+errors.json
