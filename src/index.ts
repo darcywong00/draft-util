@@ -7,6 +7,7 @@ import * as yv from '@glowstudent/youversion';
 
 // Translation IDs and names to use in tables
 // IDs need to match node_models/@glowstudent/youversion/dist/versions.json
+// Only include versions that will be queried
 const versionType = {
   // Thai versions
   THSV11: {
@@ -38,11 +39,6 @@ const versionType = {
   SBLG: {
     id: 156,
     name: "Greek"},
-
-  CCB: {
-    id: 36,
-    name: "Simplified Chinese"
-  }
 };
 
 // Object to hold multiple versions for a single verse
@@ -63,9 +59,6 @@ type draftObjType = {
 
   // Greek
   SBLG : string,
-
-  CCB? : string
-
 };
 
 const DEFAULT_DRAFT_OBJ : draftObjType = {
@@ -77,8 +70,6 @@ const DEFAULT_DRAFT_OBJ : draftObjType = {
   NODTHNT: "",
 
   SBLG : "",
-
-  CCB : ""
 }
 
 ////////////////////////////////////////////////////////////////////
@@ -88,13 +79,14 @@ program
   .description("Drafting utilities to pull multiple Bible translations")
   .requiredOption("-b, --book <book name>", "name of book to retrieve. " +
       "Could be 3-character alias: https://github.com/Glowstudent777/YouVersion-API-NPM#books-and-aliases")
-  .option("-c, --chapters <chapter number>", "Chapter number as a string (chapters split by hyphen")
+  .requiredOption("-c, --chapters <chapter number>", "Chapter number as a string (chapters split by hyphen")
   .option("-v, --verses <verse>", "Verse number as a string (verses split by hyphen)")
   .exitOverride();
 try {
   program.parse();
 } catch(error: any) {
   console.error(error.message);
+  process.exit(1);
 }
 
 // Validate parameters
@@ -144,7 +136,23 @@ for (let currentChapter=chapterRange[0]; currentChapter<=chapterRange[1]; curren
 
   for (let currentVerse=verseRange[0]; currentVerse<=verseRange[1]; currentVerse++) {
     // Get verses
-    const obj = await getVerses(bookInfo, currentChapter, currentVerse, loggingObj);
+    const obj : draftObjType = DEFAULT_DRAFT_OBJ;
+
+    const chapter = currentChapter.toString();
+    const verses = currentVerse.toString();
+
+    // Timing: const startTime = Date.now();
+    const ref = await Promise.all(getVerses(bookInfo, chapter, verses));
+
+    checkError(loggingObj, ref, bookInfo.name, chapter, verses);
+    Object.keys(versionType).forEach((version, index) => {
+      // Assign the passage for each version
+      obj[version] = ref[index].passage;
+    });
+
+    // Timing: (old way took ~0.6s up to 3 or 4 seconds for a single verse)
+    //const elapsedTime = (Date.now() - startTime)/1000;
+    //console.log(`Verses took ${elapsedTime} seconds`);
     console.log(obj);
 
     str += writeTable(bookInfo, currentChapter, currentVerse, obj);
@@ -183,16 +191,7 @@ function validateParameters(options) {
     console.log('\n');
   }
 
-  // Book and chapter required
-  if (!options.book) {
-    console.error("Book name required");
-    process.exit(1);
-  }
-  if (!options.chapters) {
-    console.error("Chapters required");
-    process.exit(1);
-  }
-
+  // Commander already checked required parameters
   // Having both chapter range and verse range is invalid
   if (options.chapters?.includes('-') && options?.verses?.includes('-')) {
     console.error("Cannot have chapter: " + options.chapters + " and verses: " +
@@ -201,74 +200,45 @@ function validateParameters(options) {
   }
 }
 
-async function getVerses(bookInfo: books.bookType, currentChapter: number, currentVerse: number, loggingObj: string[]) :
-    Promise<draftObjType> {
-  const obj : draftObjType = DEFAULT_DRAFT_OBJ;
-  const chapter = currentChapter.toString();
-  const verses = currentVerse.toString();
+function getVerses(bookInfo: books.bookType, chapter: string, verses: string) :
+    Array<Promise<any>> {
 
-  let ref : any = {};
-  ref = await yv.getVerse(bookInfo.code, chapter, verses, "THSV11");
-  checkError(loggingObj, ref, bookInfo.name, chapter, verses,  'THSV11');
-  //console.log(ref.passage);
-  obj.THSV11 = ref.passage;
-
-  ref = await yv.getVerse(bookInfo.code, chapter, verses, "TNCV");
-  checkError(loggingObj, ref, bookInfo.name, chapter, verses,  'TNCV');
-  //console.log(ref.passage);
-  obj.TNCV = ref.passage;
-
-  ref = await yv.getVerse(bookInfo.code, chapter, verses, "THAERV");
-  checkError(loggingObj, ref, bookInfo.name, chapter, verses,  'THAERV');
-  //console.log(ref.passage);
-  obj.THAERV = ref.passage;
-
-  ref = await yv.getVerse(bookInfo.code, chapter, verses, "NODTHNT");
-  checkError(loggingObj, ref, bookInfo.name, chapter, verses,  'NODTHNT');
-  //console.log(ref.passage);
-  obj.NODTHNT = ref.passage;
-
-  ref = await yv.getVerse(bookInfo.code, chapter, verses, "NTV");
-  checkError(loggingObj, ref, bookInfo.name, chapter, verses,  'NTV');
-  //console.log(ref.passage);
-  obj.NTV = ref.passage;
-
-  ref = await yv.getVerse(bookInfo.code, chapter, verses, "ESV");
-  checkError(loggingObj, ref, bookInfo.name, chapter, verses,  'ESV');
-  //console.log(ref.passage);
-  obj.ESV = ref.passage;
-
-  ref = await yv.getVerse(bookInfo.code, chapter, verses, "SBLG");
-  checkError(loggingObj, ref, bookInfo.name, chapter, verses,  'SBLG');
-  //console.log(ref.passage);
-  obj.SBLG = ref.passage;
-
-  return obj
+  const promises : Array<Promise<any>> = [];
+  Object.keys(versionType).forEach((version) => {
+    promises.push(yv.getVerse(bookInfo.code, chapter, verses, version));
+  });
+  return promises;
 }
 
 /**
- * Quick sanity check that query for a verse is valid.
+ * Quick sanity check that queried verse is valid.
  * TODO: some verses are undefined if it shows in a footnote (issue #3)
- * @param loggingObj {string[]} - Any errors in getting a verse are added to this log
- * @param ref - verse returned from YouVersion query
- * @param book {string} - book name
- * @param chapter {string} - chapter number as string
- * @param currentVerse  {string} - verse number as string
- * @param version {string} - version of a verse
+ * @param {string[]} loggingObj - Any errors in getting a verse are added to this log
+ * @param {any[]} ref - array of 1 verse (multiple versions) returned from YouVersion query
+ * @param {string} book - book name
+ * @param {string} chapter - chapter number as string
+ * @param {string} currentVerse - verse number as string
  */
-function checkError(loggingObj: string[], ref, book: string, chapter: string, currentVerse: string, version: string) {
-  const reference = `${book} Ch ${chapter}:${currentVerse} (${version})`;
-  if (ref.code == 400) {
-    const msg = `ERROR: ${ref.message} for ${reference}`;
-    console.error(msg);
-    loggingObj.push(msg);
-    // Exit?
-    // process.exit(1);
-  } else if (!ref.passage) {
-    const msg = `WARN: Verse undefined for ${reference}`;
-    //console.warn(msg);
-    loggingObj.push(msg);
-  }
+function checkError(loggingObj: string[], ref: any[], book: string, chapter: string, currentVerse: string) {
+  Object.keys(versionType).forEach((version, index) => {
+    const reference = `${book} Ch ${chapter}:${currentVerse} (${version})`;
+    try {
+      if (ref[index].code == 400) {
+        const msg = `ERROR: ${ref[index].message} for ${reference}`;
+        console.error(msg);
+        loggingObj.push(msg);
+        // Exit?
+        // process.exit(1);
+      } else if (!ref[index].passage) {
+        const msg = `WARN: Verse undefined for ${reference}`;
+        //console.warn(msg);
+        loggingObj.push(msg);
+      }
+    } catch (e: any) {
+      console.error(e.message);
+      loggingObj.push(e.message);
+    }
+  });
 }
 
 function getDocumentTitle(bookInfo: books.bookType, chapterRange: number[], verses: string) : string {
@@ -294,10 +264,10 @@ function getDocumentTitle(bookInfo: books.bookType, chapterRange: number[], vers
 
 /**
  * Return HTML text for caption and table of the versions for a single verse
- * @param bookInfo {books.bookType} - Info on current book
- * @param currentChapter {number} - Current chapter number
- * @param currentVerse {number} - Current verse number
- * @param obj = Drafting object
+ * @param {books.bookType} bookInfo - Info on current book
+ * @param {number} currentChapter - Current chapter number
+ * @param {number} currentVerse - Current verse number
+ * @param {draftObjType} obj  = Drafting object
  * @returns {string} - HTML text for table
  */
 function writeTable(bookInfo: books.bookType, currentChapter: number, currentVerse: number, obj: draftObjType) : string {
@@ -321,18 +291,14 @@ function writeTable(bookInfo: books.bookType, currentChapter: number, currentVer
   //str += "<tr><th>Version</th>";
   //str += "<th>Verse</th></tr>";
 
-  str += "<tr><td>" + versionType.THSV11.name + "</td><td>" + obj.THSV11 + "</td></tr>";
-  str += "<tr><td>" + versionType.TNCV.name + "</td><td>" + obj.TNCV + "</td></tr>";
-  str += "<tr><td>" + versionType.THAERV.name + "</td><td>" + obj.THAERV + "</td></tr>";
-  str += "<tr><td>" + versionType.NODTHNT.name + "</td><td>" + obj.NODTHNT + "</td></tr>";
-  str += "<tr><td>" + versionType.NTV.name + "</td><td>" + obj.NTV + "</td></tr>";
-  str += "<tr><td>" + versionType.ESV.name + "</td><td>" + obj.ESV + "</td></tr>";
-  str += "<tr><td>" + versionType.SBLG.name + "</td><td>" + obj.SBLG + "</td></tr>";
+  Object.entries(versionType).forEach(([key, value]) => {
+    str += `<tr><td>${value.name}</td><td>${obj[key]}</td></tr>`;
+  });
 
-  str += "<tr><td>Tawan</td><td></td></tr>";
-  str += "<tr><td>Jum</td><td></td></tr>";
-  str += "<tr><td>La</td><td></td></tr>";
-  str += "<tr><td>Taam</td><td></td></tr>";
+  const names = ["Tawan", "Jum", "La", "Taam"];
+  names.forEach(n => {
+    str += `<tr><td>${n}</td><td></td></tr>`;
+  });
 
   str += "</table>";
 
