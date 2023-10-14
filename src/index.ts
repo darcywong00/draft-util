@@ -3,74 +3,9 @@
 import { program } from 'commander';
 import * as fs from 'fs';
 import * as books from './books.js';
+import * as draft from './draft.js';
+import * as html from './html.js';
 import * as yv from '@glowstudent/youversion';
-
-// Translation IDs and names to use in tables
-// IDs need to match node_models/@glowstudent/youversion/dist/versions.json
-// Only include versions that will be queried
-const versionType = {
-  // Thai versions
-  THSV11: {
-    id: 174,
-    name: "มาตรฐาน<br>THSV 2011"},
-  TNCV: {
-    id: 179,
-    name: "อมตธรรมร่วมสมัย<br>TNCV"},
-  THAERV: {
-    id: 203,
-    name: "อ่านเข้าใจง่าย<br>Easy to read"},
-
-  // Lanna
-  NODTHNT: {
-    id: 1907,
-    name: "คำเมือง<br>(Lanna)"},
-
-  // Thai
-  NTV: {
-    id: 2744,
-    name: "แปลใหม่<br>(NTV)"},
-
-  // English
-  ESV: {
-    id: 59,
-    name: "ESV"},
-
-  // Greek
-  SBLG: {
-    id: 156,
-    name: "Greek"},
-};
-
-// Object to hold multiple versions for a single verse
-type draftObjType = {
-  // Thai versions
-  THSV11 : string,
-  TNCV : string,
-  THAERV : string,
-
-  // Lanna
-  NODTHNT: string,
-
-  // Thai
-  NTV : string,
-
-  // English
-  ESV : string,
-
-  // Greek
-  SBLG : string,
-};
-
-const DEFAULT_DRAFT_OBJ : draftObjType = {
-  THSV11 : "",
-  TNCV : "",
-  THAERV : "",
-  NTV : "",
-  ESV : "",
-  NODTHNT: "",
-
-  SBLG : "",
-}
 
 ////////////////////////////////////////////////////////////////////
 // Get parameters
@@ -98,7 +33,6 @@ const bookCode = (options.book.length == 3) ?
   options.book.toUpperCase() :
   books.getBookByName(options.book).code;
 const bookInfo = books.getBookByCode(bookCode);
-const bookName = bookInfo.name;
 
 // Determine the chapter ranges
 let chapterRange: number[] = [];
@@ -109,10 +43,8 @@ if (options.chapters) {
   }
 }
 
-// Document title
-const title = getDocumentTitle(bookInfo, chapterRange, options.verses);
-let str = "<html><head><title>" + title + "</title></head>";
-str += "<h1>" + title + "</h1>";
+// Start new document
+const Html = new html.Html(bookInfo, chapterRange, options.verses);
 
 const loggingObj: string[] = [];
 for (let currentChapter=chapterRange[0]; currentChapter<=chapterRange[1]; currentChapter++) {
@@ -136,7 +68,7 @@ for (let currentChapter=chapterRange[0]; currentChapter<=chapterRange[1]; curren
 
   for (let currentVerse=verseRange[0]; currentVerse<=verseRange[1]; currentVerse++) {
     // Get verses
-    const obj : draftObjType = DEFAULT_DRAFT_OBJ;
+    const obj : draft.draftObjType = draft.DEFAULT_DRAFT_OBJ;
 
     const chapter = currentChapter.toString();
     const verses = currentVerse.toString();
@@ -145,7 +77,7 @@ for (let currentChapter=chapterRange[0]; currentChapter<=chapterRange[1]; curren
     const ref = await Promise.all(getVerses(bookInfo, chapter, verses));
 
     checkError(loggingObj, ref, bookInfo.name, chapter, verses);
-    Object.keys(versionType).forEach((version, index) => {
+    Object.keys(draft.VERSION_TYPE).forEach((version, index) => {
       // Assign the passage for each version
       obj[version] = ref[index].passage;
     });
@@ -155,21 +87,16 @@ for (let currentChapter=chapterRange[0]; currentChapter<=chapterRange[1]; curren
     //console.log(`Verses took ${elapsedTime} seconds`);
     console.log(obj);
 
-    str += writeTable(bookInfo, currentChapter, currentVerse, obj);
+    Html.addTable(currentChapter, currentVerse, obj);
   }
 }
 
-str += "</html>";
-
-let fileName = bookInfo.thName ? `${bookInfo.thName} - ` : "";
-fileName += options.verses ?
-  `${bookName}Ch${options.chapters}-${options.verses}.html` :
-  `${bookName}Ch${options.chapters}.html`
-fs.writeFileSync('./' + fileName, str);
+Html.closeFile();
+Html.writeFile();
 
 fs.writeFileSync('./errors.json', JSON.stringify(loggingObj, null, 2));
 
-console.log('Done processing ' + title);
+console.log('Done processing ' + Html.getDocumentTitle());
 
 ////////////////////////////////////////////////////////////////////
 // End of processor functions
@@ -204,7 +131,7 @@ function getVerses(bookInfo: books.bookType, chapter: string, verses: string) :
     Array<Promise<any>> {
 
   const promises : Array<Promise<any>> = [];
-  Object.keys(versionType).forEach((version) => {
+  Object.keys(draft.VERSION_TYPE).forEach((version) => {
     promises.push(yv.getVerse(bookInfo.code, chapter, verses, version));
   });
   return promises;
@@ -220,7 +147,7 @@ function getVerses(bookInfo: books.bookType, chapter: string, verses: string) :
  * @param {string} currentVerse - verse number as string
  */
 function checkError(loggingObj: string[], ref: any[], book: string, chapter: string, currentVerse: string) {
-  Object.keys(versionType).forEach((version, index) => {
+  Object.keys(draft.VERSION_TYPE).forEach((version, index) => {
     const reference = `${book} Ch ${chapter}:${currentVerse} (${version})`;
     try {
       if (ref[index].code == 400) {
@@ -239,71 +166,4 @@ function checkError(loggingObj: string[], ref: any[], book: string, chapter: str
       loggingObj.push(e.message);
     }
   });
-}
-
-function getDocumentTitle(bookInfo: books.bookType, chapterRange: number[], verses: string) : string {
-  let title = (bookInfo.thName) ? bookInfo.thName + ' - ' + bookInfo.name :
-    bookInfo.name;
-
-  title += ' Ch ' + chapterRange[0];
-  if (chapterRange[0] == chapterRange[1]) {
-    // Single chapter with verse(s)
-    if (verses) {
-      title += ':' + verses;
-    } else {
-      // Determine the verse ranges
-      title += ':1-' + bookInfo.versesInChapter[options.chapters];
-    }
-  } else {
-    // Multiple chapters (no verse range)
-    title += '-' + chapterRange[1];
-  }
-
-  return title;
-}
-
-/**
- * Return HTML text for caption and table of the versions for a single verse
- * @param {books.bookType} bookInfo - Info on current book
- * @param {number} currentChapter - Current chapter number
- * @param {number} currentVerse - Current verse number
- * @param {draftObjType} obj  = Drafting object
- * @returns {string} - HTML text for table
- */
-function writeTable(bookInfo: books.bookType, currentChapter: number, currentVerse: number, obj: draftObjType) : string {
-  let title;
-  if (bookInfo.thName) {
-    title = bookInfo.thName + ' - ';
-  }
-  title += bookInfo.name + ' ' + currentChapter + ':' + currentVerse;
-
-  let str = `<h2>${title}</h2>`;
-  str += "<table>"
-
-  str += "<colgroup>";
-  str += "<col span='1' style='width: 10%;'>";
-  str += "<col span='1' style='width: 90%;'>";
-  str += "</colgroup>";
-
-  str += "<tbody style='font-size: 14pt; font-family:Sarabun;'>";
-
-  // Optional table headers
-  //str += "<tr><th>Version</th>";
-  //str += "<th>Verse</th></tr>";
-
-  Object.entries(versionType).forEach(([key, value]) => {
-    str += `<tr><td>${value.name}</td><td>${obj[key]}</td></tr>`;
-  });
-
-  const names = ["Tawan", "Jum", "La", "Taam"];
-  names.forEach(n => {
-    str += `<tr><td>${n}</td><td></td></tr>`;
-  });
-
-  str += "</table>";
-
-  // Horizontal divider gets imported to Google Docs as page break
-  str += "<hr class='pb'>";
-
-  return str;
 }
