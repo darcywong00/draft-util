@@ -1,6 +1,7 @@
 #!/usr/bin/env node
+/* eslint-disable @typescript-eslint/no-explicit-any */
 // Copyright 2023 SIL International
-import { program } from 'commander';
+import { CommanderError, program } from 'commander';
 import * as fs from 'fs';
 import * as books from './books.js';
 import * as draft from './draft.js';
@@ -19,8 +20,10 @@ program
   .exitOverride();
 try {
   program.parse();
-} catch(error: any) {
-  console.error(error.message);
+} catch(error: unknown) {
+  if (error instanceof CommanderError) {
+    console.error(error.message);
+  }
   process.exit(1);
 }
 
