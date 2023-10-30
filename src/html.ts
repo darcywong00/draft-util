@@ -68,7 +68,7 @@ export class Html {
       str += `<tr><td>${value.name}</td><td>${obj[key]}</td></tr>`;
     });
 
-    const NAMES = ["Tawan", "Jum", "La", "Taam"];
+    const NAMES = ["Tawan", "Jum", "La", "Team"];
     NAMES.forEach(n => {
       str += `<tr><td>${n}</td><td></td></tr>`;
     });
