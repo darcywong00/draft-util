@@ -54,10 +54,6 @@ export class Html {
 
     let str = `<h2>${title}</h2>`;
     str += "<table>"
-    str += "<colgroup>";
-    str += "<col span='1' style='width: 10%;'>";
-    str += "<col span='1' style='width: 90%;'>";
-    str += "</colgroup>";
     str += "<tbody style='font-size: 14pt; font-family:Sarabun;'>";
 
     // Optional table headers
@@ -65,12 +61,12 @@ export class Html {
     //str += "<th>Verse</th></tr>";
 
     Object.entries(draft.VERSION_TYPE).forEach(([key, value]) => {
-      str += `<tr><td>${value.name}</td><td>${obj[key]}</td></tr>`;
+      str += `<tr><td style='width:19%'>${value.name}</td><td>${obj[key]}</td></tr>`;
     });
 
     const NAMES = ["Tawan", "Jum", "La", "Team"];
     NAMES.forEach(n => {
-      str += `<tr><td>${n}</td><td></td></tr>`;
+      str += `<tr><td style='width:19%'>${n}</td><td></td></tr>`;
     });
 
     str += "</table>";
