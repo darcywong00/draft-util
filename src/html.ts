@@ -12,6 +12,9 @@ export class Html {
   // Document title
   private title: string;
 
+  // CSS styling to apply to the tables
+  private STYLE = "<style>table.tb {font-size: 14pt; font-family:Sarabun;} .tb td.c1 {width:19%} .c2 {padding: 5px;}</style>";
+
   // Document filename
   private fileName: string;
 
@@ -26,7 +29,11 @@ export class Html {
     this.title = this.setDocumentTitle();
     this.fileName = this.getFileName();
 
-    this.str = "<html><head><title>" + this.title + "</title></head>";
+    // Header which includes title and table styling
+    this.str = "<html><head>" +
+               "<title>" + this.title + "</title>" +
+               this.STYLE +
+               "</head>";
     this.str += "<h1>" + this.title + "</h1>";
   }
 
@@ -53,24 +60,20 @@ export class Html {
     title += this.bookInfo.name + ' ' + currentChapter + ':' + currentVerse;
 
     let str = `<h2>${title}</h2>`;
-    str += "<table>"
-    str += "<colgroup>";
-    str += "<col span='1' style='width: 10%;'>";
-    str += "<col span='1' style='width: 90%;'>";
-    str += "</colgroup>";
-    str += "<tbody style='font-size: 14pt; font-family:Sarabun;'>";
+    str += "<table class='tb'>"
 
+    //
     // Optional table headers
     //str += "<tr><th>Version</th>";
     //str += "<th>Verse</th></tr>";
 
     Object.entries(draft.VERSION_TYPE).forEach(([key, value]) => {
-      str += `<tr><td>${value.name}</td><td>${obj[key]}</td></tr>`;
+      str += `<tr><td class='c1'>${value.name}</td><td class='c2'>${obj[key]}</td></tr>`;
     });
 
-    const NAMES = ["Tawan", "Jum", "La", "Taam"];
+    const NAMES = ["Tawan", "Jum", "La", "Team"];
     NAMES.forEach(n => {
-      str += `<tr><td>${n}</td><td></td></tr>`;
+      str += `<tr><td class='c1'>${n}</td><td></td></tr>`;
     });
 
     str += "</table>";
