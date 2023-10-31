@@ -49,7 +49,7 @@ if (options.chapters) {
   await processChapterRange();
 } else {
   // Process the entire book, a chunk number of chapters at a time
-  const CHAPTER_CHUNKS_PER_BOOK = 3;
+  const CHAPTER_CHUNKS_PER_BOOK = 5;
   chapterRange[0] = 1;
   chapterRange[1] = Math.min(CHAPTER_CHUNKS_PER_BOOK, bookInfo.chapters);
   while(chapterRange[0] < chapterRange[1] && chapterRange[1] <= bookInfo.chapters) {
