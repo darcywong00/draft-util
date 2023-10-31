@@ -52,7 +52,7 @@ if (options.chapters) {
   const CHAPTER_CHUNKS_PER_BOOK = 5;
   chapterRange[0] = 1;
   chapterRange[1] = Math.min(CHAPTER_CHUNKS_PER_BOOK, bookInfo.chapters);
-  while(chapterRange[0] < chapterRange[1] && chapterRange[1] <= bookInfo.chapters) {
+  while(chapterRange[0] <= chapterRange[1] && chapterRange[1] <= bookInfo.chapters) {
     await processChapterRange();
 
     // Update chapter range
